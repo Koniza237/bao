@@ -1,0 +1,23 @@
+[
+  {
+    "id": "D1",
+    "name": "Informatique",
+    "head": "Tankoua",
+    "volumeHoraire": 45,
+    "lastUpdated": "2025-06-13T14:49:52.002Z"
+  },
+  {
+    "id": "D2",
+    "name": "Mathematiques",
+    "head": "Tank",
+    "volumeHoraire": 45,
+    "lastUpdated": "2025-06-14T08:02:26.816Z"
+  },
+  {
+    "id": "D3",
+    "name": "Science",
+    "head": "Fred",
+    "volumeHoraire": 45,
+    "lastUpdated": "2025-06-14T08:02:56.226Z"
+  }
+]

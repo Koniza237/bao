@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Administratif - Stones Academy</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="shortcut icon" href="logostones.jpg" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #ffffff;
+            padding: 10px 15px;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+            text-decoration: none;
+        }
+        .sidebar .active {
+            background-color: #007bff;
+        }
+        .navbar-brand img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <div class="text-center mb-4">
+                        <img src="logostones.jpg" alt="Stones Academy Logo" class="img-fluid rounded" style="width: 80px;">
+                        <h4 class="text-white mt-2">Stones Academy</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt mr-2"></i> Tableau de bord</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="classes.html"><i class="fas fa-chalkboard mr-2"></i> Classes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="professeurs.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Professeurs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="departements.html"><i class="fas fa-building mr-2"></i> Départements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="filieres.html"><i class="fas fa-book mr-2"></i> Filières</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="etudiants.html"><i class="fas fa-user-graduate mr-2"></i> Étudiants</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="contraintes.html" onclick="showSection('constraints')"><i class="fas fa-calendar-alt mr-2"></i> Contraintes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('documents')"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="exportation.html" onclick="showSection('export')"><i class="fas fa-file-export mr-2"></i> Exportation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="parametrage-admin.html"><i class="fas fa-cog mr-2"></i> Paramètres</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="connexion.html" onclick="logout()"><i class="fas fa-sign-out-alt mr-2"></i> Déconnexion</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Tableau de Bord Administratif</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <span class="mr-3">Vous êtes connecté en tant que : <span id="adminEmail"></span></span>
+                        <span id="timeSpent" class="badge badge-primary"></span>
+                    </div>
+                </div>
+
+                <!-- Sections -->
+                <div id="dashboard" class="section">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-white bg-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title">Étudiants</h5>
+                                    <p class="card-text" id="studentsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-success">
+                                <div class="card-body">
+                                    <h5 class="card-title">Enseignants</h5>
+                                    <p class="card-text" id="teachersCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title">Classes</h5>
+                                    <p class="card-text" id="classesCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-danger">
+                                <div class="card-body">
+                                    <h5 class="card-title">Départements</h5>
+                                    <p class="card-text" id="departementsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Répartition des données</h5>
+                            <canvas id="statsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="constraints" class="section d-none">
+                    <h3>Contraintes</h3>
+                    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#constraintModal">Ajouter Contrainte</button>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Priorité</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="constraintsTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="documents" class="section d-none">
+                    <h3>Documents</h3>
+                    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#documentModal">Ajouter Document</button>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Catégorie</th>
+                                <th>Nom du Fichier</th>
+                                <th>Ajouté par</th>
+                                <th>Date d'Ajout</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="export" class="section d-none">
+                    <h3>Exportation</h3>
+                    <p>Exportez les données des étudiants, enseignants, classes et départements au format Excel.</p>
+                    <button class="btn btn-primary" onclick="exportData()">Exporter les données</button>
+                </div>
+
+                <!-- Modals -->
+                <!-- Constraint Modal -->
+                <div class="modal fade" id="constraintModal" tabindex="-1" aria-labelledby="constraintModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="constraintModalLabel">Ajouter Contrainte</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="constraintForm">
+                                    <div class="form-group">
+                                        <label for="constraintType">Type</label>
+                                        <input type="text" class="form-control" id="constraintType" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="constraintDescription">Description</label>
+                                        <textarea class="form-control" id="constraintDescription" required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="constraintPriority">Priorité</label>
+                                        <select class="form-control" id="constraintPriority" required>
+                                            <option value="low">Basse</option>
+                                            <option value="medium" selected>Moyenne</option>
+                                            <option value="high">Haute</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Modal -->
+                <div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="documentModalLabel">Ajouter Document</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="documentForm">
+                                    <div class="form-group">
+                                        <label for="documentTitle">Titre</label>
+                                        <input type="text" class="form-control" id="documentTitle" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="documentCategory">Catégorie</label>
+                                        <select class="form-control" id="documentCategory" required>
+                                            <option value="">Sélectionner une catégorie</option>
+                                            <option value="Règlements">Règlements</option>
+                                            <option value="Notes Internes">Notes Internes</option>
+                                            <option value="Autres">Autres</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="documentFile">Fichier</label>
+                                        <input type="file" class="form-control-file" id="documentFile" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        let chartInstance = null;
+
+        // Vérifier la connexion
+        const adminEmail = localStorage.getItem('adminEmail');
+        if (!adminEmail) {
+            window.location.href = 'loginadmin.html';
+        } else {
+            document.getElementById('adminEmail').textContent = adminEmail;
+        }
+
+        // Compteur de temps passé
+        let timeSpent = 0;
+        setInterval(() => {
+            timeSpent++;
+            const hrs = Math.floor(timeSpent / 3600);
+            const mins = Math.floor((timeSpent % 3600) / 60);
+            const secs = timeSpent % 60;
+            document.getElementById('timeSpent').textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        // Afficher/masquer les sections
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.classList.add('d-none'));
+            document.getElementById(sectionId).classList.remove('d-none');
+            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+            document.querySelector(`a[onclick="showSection('${sectionId}')"]`)?.classList.add('active');
+        }
+
+        // Déconnexion
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                localStorage.removeItem('adminEmail');
+                window.location.href = 'connexion.html';
+            }
+        }
+
+        // Charger les statistiques
+        async function loadStats() {
+            try {
+                // Charger les données des fichiers JSON
+                const [studentsRes, teachersRes, classesRes, departementsRes] = await Promise.all([
+                    fetch('students.json').catch(e => { throw new Error('Erreur lors du chargement de students.json: ' + e.message); }),
+                    fetch('ress-ens.json').catch(e => { throw new Error('Erreur lors du chargement de ress-ens.json: ' + e.message); }),
+                    fetch('classes.json').catch(e => { throw new Error('Erreur lors du chargement de classes.json: ' + e.message); }),
+                    fetch('departements.json').catch(e => { throw new Error('Erreur lors du chargement de departements.json: ' + e.message); })
+                ]);
+
+                // Vérifier si toutes les réponses sont valides
+                if (!studentsRes.ok) throw new Error(`Erreur HTTP pour students.json: ${studentsRes.status}`);
+                if (!teachersRes.ok) throw new Error(`Erreur HTTP pour ress-ens.json: ${teachersRes.status}`);
+                if (!classesRes.ok) throw new Error(`Erreur HTTP pour classes.json: ${classesRes.status}`);
+                if (!departementsRes.ok) throw new Error(`Erreur HTTP pour departements.json: ${departementsRes.status}`);
+
+                // Extraire les données JSON
+                let students, teachers, classes, departements;
+                try {
+                    students = await studentsRes.json();
+                    teachers = await teachersRes.json();
+                    classes = await classesRes.json();
+                    departements = await departementsRes.json();
+                } catch (e) {
+                    throw new Error('Erreur de parsing JSON: ' + e.message);
+                }
+
+                // Compter les éléments
+                const studentsCount = Array.isArray(students) ? students.length : 0;
+                const teachersCount = Array.isArray(teachers) ? teachers.length : 0;
+                const classesCount = Array.isArray(classes) ? classes.length : 0;
+                const departementsCount = Array.isArray(departements) ? departements.length : 0;
+
+                // Afficher les compteurs pour débogage
+                console.log('Students count:', studentsCount);
+                console.log('Teachers count:', teachersCount);
+                console.log('Classes count:', classesCount);
+                console.log('Departements count:', departementsCount);
+
+                // Mettre à jour l'affichage
+                document.getElementById('studentsCount').textContent = studentsCount;
+                document.getElementById('teachersCount').textContent = teachersCount;
+                document.getElementById('classesCount').textContent = classesCount;
+                document.getElementById('departementsCount').textContent = departementsCount;
+
+                // Initialiser le graphique
+                const ctx = document.getElementById('statsChart').getContext('2d');
+                if (chartInstance) chartInstance.destroy();
+                chartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Étudiants', 'Enseignants', 'Classes', 'Départements'],
+                        datasets: [{
+                            label: 'Répartition',
+                            data: [studentsCount, teachersCount, classesCount, departementsCount],
+                            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545'],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des statistiques:', error.message);
+                alert('Impossible de charger les statistiques: ' + error.message);
+                document.getElementById('studentsCount').textContent = 'Erreur';
+                document.getElementById('teachersCount').textContent = 'Erreur';
+                document.getElementById('classesCount').textContent = 'Erreur';
+                document.getElementById('departementsCount').textContent = 'Erreur';
+            }
+        }
+
+        // Charger les contraintes
+        async function loadConstraints() {
+            try {
+                const response = await fetch('/api/constraints');
+                if (!response.ok) throw new Error('Erreur réseau');
+                const constraints = await response.json();
+                const tbody = document.getElementById('constraintsTable');
+                tbody.innerHTML = '';
+                constraints.forEach(c => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${c.type}</td>
+                        <td>${c.description}</td>
+                        <td>${c.priority}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteConstraint(${c.id})">Supprimer</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des contraintes:', error);
+            }
+        }
+
+        // Ajouter une contrainte
+        document.getElementById('constraintForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const constraint = {
+                    type: document.getElementById('constraintType').value,
+                    description: document.getElementById('constraintDescription').value,
+                    priority: document.getElementById('constraintPriority').value
+                };
+                const response = await fetch('/api/constraints', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(constraint)
+                });
+                if (!response.ok) throw new Error('Erreur réseau');
+                $('#constraintModal').modal('hide');
+                document.getElementById('constraintForm').reset();
+                loadConstraints();
+            } catch (error) {
+                alert('Erreur lors de l\'ajout de la contrainte: ' + error.message);
+            }
+        });
+
+        // Supprimer une contrainte
+        async function deleteConstraint(id) {
+            if (confirm('Voulez-vous vraiment supprimer cette contrainte ?')) {
+                try {
+                    const response = await fetch(`/api/constraints/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Erreur réseau');
+                    loadConstraints();
+                } catch (error) {
+                    alert('Erreur lors de la suppression: ' + error.message);
+                }
+            }
+        }
+
+        // Charger les documents
+        async function loadDocuments() {
+            try {
+                const response = await fetch('/api/documents');
+                if (!response.ok) throw new Error('Erreur réseau');
+                const documents = await response.json();
+                const tbody = document.getElementById('documentsTable');
+                tbody.innerHTML = '';
+                documents.forEach(doc => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${doc.title}</td>
+                        <td>${doc.category}</td>
+                        <td>${doc.fileName}</td>
+                        <td>${doc.uploadedBy}</td>
+                        <td>${doc.uploadDate}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm mr-2" onclick="downloadDocument(${doc.id}, '${doc.fileName}')">Télécharger</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteDocument(${doc.id})">Supprimer</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des documents:', error);
+            }
+        }
+
+        // Ajouter un document
+        document.getElementById('documentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const formData = new FormData();
+                formData.append('title', document.getElementById('documentTitle').value);
+                formData.append('category', document.getElementById('documentCategory').value);
+                formData.append('file', document.getElementById('documentFile').files[0]);
+                formData.append('uploadedBy', adminEmail);
+                const response = await fetch('/api/documents', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) throw new Error('Erreur réseau');
+                $('#documentModal').modal('hide');
+                document.getElementById('documentForm').reset();
+                loadDocuments();
+            } catch (error) {
+                alert('Erreur lors de l\'ajout du document: ' + error.message);
+            }
+        });
+
+        // Télécharger un document
+        async function downloadDocument(id, fileName) {
+            try {
+                const response = await fetch(`/api/documents/${id}/download`);
+                if (!response.ok) throw new Error('Erreur réseau');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('Erreur lors du téléchargement: ' + error.message);
+            }
+        }
+
+        // Supprimer un document
+        async function deleteDocument(id) {
+            if (confirm('Voulez-vous vraiment supprimer ce document ?')) {
+                try {
+                    const response = await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Erreur réseau');
+                    loadDocuments();
+                } catch (error) {
+                    alert('Erreur lors de la suppression: ' + error.message);
+                }
+            }
+        }
+
+        // Exporter les données
+        async function exportData() {
+            try {
+                const response = await fetch('/api/export');
+                if (!response.ok) throw new Error('Erreur réseau');
+                const data = await response.json();
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Export');
+                XLSX.write(wb, 'stones_academy_export.xlsx');
+            } catch (error) {
+                alert('Erreur lors de l\'exportation: ' + error.message);
+            }
+        }
+
+        // Initialisation
+        loadStats();
+        loadConstraints();
+        loadDocuments();
+    </script>
+</body>
+</html>

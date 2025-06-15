@@ -1,0 +1,23 @@
+[
+  {
+    "id": "F1",
+    "name": "Master",
+    "studentCount": 27,
+    "subjects": "Physique, Info",
+    "lastUpdated": "2025-06-13T13:14:45.291Z"
+  },
+  {
+    "id": "F2",
+    "name": "Bachelor 1",
+    "studentCount": 34,
+    "subjects": "Physique, Info, Maths",
+    "lastUpdated": "2025-06-14T08:12:32.154Z"
+  },
+  {
+    "id": "F3",
+    "name": "Bachelor 2",
+    "studentCount": 70,
+    "subjects": "Francais",
+    "lastUpdated": "2025-06-14T08:49:20.338Z"
+  }
+]

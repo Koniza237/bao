@@ -1,0 +1,9 @@
+{
+  "defaultTimeSlots": [
+    "08:00-10:00",
+    "10:00-12:00",
+    "15:00-17:00"
+  ],
+  "maxClassesPerDay": 3,
+  "notificationEmail": ""
+}

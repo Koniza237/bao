@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Exportation des emplois du temps pour Stones Academy">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="logostones.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #ffffff;
+            padding: 10px 15px;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+            text-decoration: none;
+        }
+        .sidebar .active {
+            background-color: #007bff;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .table th {
+            cursor: pointer;
+        }
+        .table th:hover {
+            background-color: #e9ecef;
+        }
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <div class="text-center mb-4">
+                        <img src="logostones.jpg" alt="Stones Academy Logo" class="img-fluid rounded" style="width: 80px;">
+                        <h4 class="text-white mt-2">Stones Academy</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard-admin.html"><i class="fas fa-tachometer-alt mr-2"></i> Tableau de bord</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="classes.html"><i class="fas fa-chalkboard mr-2"></i> Classes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="professeurs.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Professeurs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="departements.html"><i class="fas fa-building mr-2"></i> Départements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="filieres.html"><i class="fas fa-book mr-2"></i> Filières</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="etudiants.html"><i class="fas fa-user-graduate mr-2"></i> Étudiants</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="contraintes.html"><i class="fas fa-calendar-alt mr-2"></i> Contraintes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="documents.html"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="exportation.html"><i class="fas fa-file-export mr-2"></i> Exportation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="parametrage-admin.html"><i class="fas fa-cog mr-2"></i> Paramètres</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt mr-2"></i> Déconnexion</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Exportation</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <span class="mr-3">Vous êtes connecté en tant que : <span id="adminEmail"></span></span>
+                        <span id="timeSpent" class="badge badge-primary"></span>
+                    </div>
+                </div>
+
+                <div id="export" class="section">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Exportation des Emplois du Temps</h5>
+                            <p class="card-text">Sélectionnez une filière et une date pour générer et exporter l'emploi du temps.</p>
+                            <div class="form-group">
+                                <label for="filiereSelect">Filière</label>
+                                <select class="form-control" id="filiereSelect" required>
+                                    <option value="">Sélectionner une filière</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="dateInput">Date</label>
+                                <input type="date" class="form-control" id="dateInput" required>
+                            </div>
+                            <button class="btn btn-primary" id="generateBtn"><i class="fas fa-sync-alt mr-2"></i>Générer</button>
+                            <button class="btn btn-success ml-2" id="exportBtn" disabled><i class="fas fa-file-pdf mr-2"></i>Exporter en PDF</button>
+                            <div id="errorMessage" class="text-danger mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Aperçu de l'Emploi du Temps</h5>
+                            <div id="timetablePreview" class="table-responsive">
+                                <table class="table table-bordered" id="timetableTable">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th>Heure</th>
+                                            <th>Lundi</th>
+                                            <th>Mardi</th>
+                                            <th>Mercredi</th>
+                                            <th>Jeudi</th>
+                                            <th>Vendredi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Vérifier la connexion
+        const adminEmail = localStorage.getItem('adminEmail');
+        if (!adminEmail) {
+            window.location.href = 'connexion.html';
+        } else {
+            document.getElementById('adminEmail').textContent = adminEmail;
+        }
+
+        // Compteur de temps passé
+        let timeSpent = 0;
+        setInterval(() => {
+            timeSpent++;
+            const hrs = Math.floor(timeSpent / 3600);
+            const mins = Math.floor((timeSpent % 3600) / 60);
+            const secs = timeSpent % 60;
+            document.getElementById('timeSpent').textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        // Initialisation
+        $(document).ready(function() {
+            fetchFilieres();
+        });
+
+        // Récupérer les filières
+        function fetchFilieres() {
+            $.get('/api/resources/filieres')
+                .done(data => {
+                    const filiereSelect = $('#filiereSelect');
+                    filiereSelect.empty().append('<option value="">Sélectionner une filière</option>');
+                    data.forEach(filiere => {
+                        filiereSelect.append(`<option value="${filiere.name}">${filiere.name}</option>`);
+                    });
+                })
+                .fail(() => {
+                    showError('Erreur lors du chargement des filières.');
+                });
+        }
+
+        // Gérer la génération
+        const generateBtn = $('#generateBtn');
+        const exportBtn = $('#exportBtn');
+        const timetableTableBody = $('#timetableTable tbody');
+        let currentTimetable = null;
+
+        generateBtn.click(function() {
+            const filiere = $('#filiereSelect').val();
+            const date = $('#dateInput').val();
+
+            // Client-side validation
+            if (!filiere || !date) {
+                showError('Veuillez sélectionner une filière et une date valide.');
+                return;
+            }
+            if (!isValidDate(date)) {
+                showError('Veuillez sélectionner une date valide (YYYY-MM-DD).');
+                return;
+            }
+
+            generateBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Génération...');
+
+            $.ajax({
+                url: '/api/generate-timetable',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ date }),
+                success: function(data) {
+                    if (!data.success) {
+                        showError(data.message || 'Erreur lors de la génération de l\'emploi du temps.');
+                        generateBtn.prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>Générer');
+                        return;
+                    }
+                    const groupTimetable = data.groups.find(g => g.group === filiere);
+                    if (!groupTimetable) {
+                        showError('Aucun emploi du temps généré pour cette filière.');
+                        generateBtn.prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>Générer');
+                        return;
+                    }
+                    currentTimetable = groupTimetable.timetable;
+                    renderTimetable(currentTimetable);
+                    exportBtn.prop('disabled', false);
+                    generateBtn.prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>Générer');
+                },
+                error: function(xhr) {
+                    const errorMsg = xhr.responseJSON?.message || 'Erreur lors de la génération de l\'emploi du temps.';
+                    showError(errorMsg);
+                    generateBtn.prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>Générer');
+                }
+            });
+        });
+
+        // Afficher l'emploi du temps
+        function renderTimetable(timetable) {
+            timetableTableBody.empty();
+            timetable.forEach(row => {
+                const tr = $('<tr></tr>');
+                tr.append(`<td>${row.time}</td>`);
+                ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'].forEach(day => {
+                    tr.append(`<td>${row[day] || '-'}</td>`);
+                });
+                timetableTableBody.append(tr);
+            });
+        }
+
+        // Gérer l'exportation en PDF
+        exportBtn.click(function() {
+            const filiere = $('#filiereSelect').val();
+            const date = $('#dateInput').val();
+            if (!currentTimetable || !filiere || !date) {
+                showError('Veuillez générer un emploi du temps avant d\'exporter.');
+                return;
+            }
+
+            exportBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exportation...');
+
+            $.ajax({
+                url: '/api/export-pdf',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ timetables: currentTimetable, date, group: filiere }),
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(data, status, xhr) {
+                    const blob = new Blob([data], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `timetable_${date}_${filiere.replace(/\s+/g, '_')}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    exportBtn.prop('disabled', false).html('<i class="fas fa-file-pdf mr-2"></i>Exporter en PDF');
+                },
+                error: function() {
+                    showError('Erreur lors de l\'exportation en PDF.');
+                    exportBtn.prop('disabled', false).html('<i class="fas fa-file-pdf mr-2"></i>Exporter en PDF');
+                }
+            });
+        });
+
+        // Valider la date
+        function isValidDate(dateStr) {
+            const regex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!regex.test(dateStr)) return false;
+            const date = new Date(dateStr);
+            return date instanceof Date && !isNaN(date) && dateStr === date.toISOString().split('T')[0];
+        }
+
+        // Afficher les erreurs
+        function showError(message) {
+            const errorMessage = $('#errorMessage');
+            errorMessage.text(message).removeClass('d-none');
+            setTimeout(() => errorMessage.addClass('d-none'), 5000);
+        }
+
+        // Déconnexion
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                localStorage.removeItem('adminEmail');
+                $.post('/api/logout')
+                    .always(() => {
+                        window.location.href = 'connexion.html';
+                    });
+            }
+        }
+    </script>
+</body>
+</html>

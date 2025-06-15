@@ -1,0 +1,26 @@
+[
+  
+  
+  {
+    "id": "P1",
+    "name": "Tankoua",
+    "email": "tankoua@gmail.com",
+    "password": "Teacher123!",
+    "department": "Informatique",
+    "lastUpdated": "2025-06-13T14:06:05.138Z"
+  },
+  {
+    "id": "P2",
+    "name": "Tank",
+    "email": "tank@gmail.com",
+    "department": "Mathematiques",
+    "lastUpdated": "2025-06-13T14:06:40.807Z"
+  },
+  {
+    "id": "P3",
+    "name": "Fred",
+    "email": "fred@gmail.com",
+    "department": "Science",
+    "lastUpdated": "2025-06-14T08:01:54.402Z"
+  }
+]

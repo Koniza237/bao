@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emploi du Temps - Enseignant</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        select, input[type="date"], button { padding: 5px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Générer l'Emploi du Temps d'un Enseignant</h2>
+        <form id="timetableForm">
+            <label for="teacher">Sélectionner un enseignant :</label>
+            <select id="teacher" name="teacher" required>
+                <option value="">Choisir un enseignant</option>
+            </select>
+            <label for="date">Date :</label>
+            <input type="date" id="date" name="date" required>
+            <button type="submit">Générer</button>
+        </form>
+        <div id="timetableResult"></div>
+    </div>
+
+    <script>
+        // Charger la liste des enseignants au démarrage
+        async function loadTeachers() {
+            try {
+                const response = await fetch('/api/resources/professors');
+                const professors = await response.json();
+                const select = document.getElementById('teacher');
+                professors.forEach(prof => {
+                    const option = document.createElement('option');
+                    option.value = prof.id;
+                    option.textContent = prof.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erreur chargement enseignants:', error);
+                alert('Erreur lors du chargement des enseignants.');
+            }
+        }
+
+        // Générer l'emploi du temps
+        document.getElementById('timetableForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const teacherId = document.getElementById('teacher').value;
+            const date = document.getElementById('date').value;
+
+            if (!teacherId || !date) {
+                alert('Veuillez sélectionner un enseignant et une date.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/generate-timetable', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, teacherId })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const timetable = data.groups[0].timetable;
+                    let html = '<table><tr><th>Heure</th><th>Lundi</th><th>Mardi</th><th>Mercredi</th><th>Jeudi</th><th>Vendredi</th></tr>';
+                    timetable.forEach(row => {
+                        html += '<tr>';
+                        html += `<td>${row.time}</td>`;
+                        html += `<td>${row.Lundi || '-'}</td>`;
+                        html += `<td>${row.Mardi || '-'}</td>`;
+                        html += `<td>${row.Mercredi || '-'}</td>`;
+                        html += `<td>${row.Jeudi || '-'}</td>`;
+                        html += `<td>${row.Vendredi || '-'}</td>`;
+                        html += '</tr>';
+                    });
+                    html += '</table>';
+                    document.getElementById('timetableResult').innerHTML = html;
+                } else {
+                    document.getElementById('timetableResult').innerHTML = `<p style="color: red;">${data.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Erreur génération emploi du temps:', error);
+                document.getElementById('timetableResult').innerHTML = '<p style="color: red;">Erreur lors de la génération de l\'emploi du temps.</p>';
+            }
+        });
+
+        // Charger les enseignants au démarrage
+        loadTeachers();
+    </script>
+</body>
+</html>

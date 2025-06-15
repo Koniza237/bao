@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tableau de bord enseignant pour Stones Academy">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Tableau de Bord Enseignant - Stones Academy</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="shortcut icon" href="logostones.jpg" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        #background-image {
+            background: linear-gradient(135deg, #343a40, #007bff);
+            background-size: 200% 200%;
+            animation: gradientShift 20s ease-in-out infinite;
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.9;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #root {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .pulse {
+            animation: pulse 2.5s infinite;
+        }
+
+        .button-click {
+            animation: clickEffect 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes clickEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.97); }
+            100% { transform: scale(1); }
+        }
+
+        .hover-effect {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .sidebar a, .sidebar button {
+            color: #ffffff;
+            padding: 10px 15px;
+            display: block;
+            transition: background-color 0.3s;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .sidebar a:hover, .sidebar button:hover {
+            background-color: #495057;
+            text-decoration: none;
+            transform: scale(1.02);
+        }
+
+        .sidebar .active {
+            background-color: #007bff;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-container th {
+            background: linear-gradient(45deg, #007bff, #28a745);
+            color: white;
+            font-weight: 600;
+        }
+
+        .gradient-button {
+            background: linear-gradient(45deg, #007bff, #28a745);
+            transition: background 0.3s ease;
+        }
+
+        .gradient-button:hover {
+            background: linear-gradient(45deg, #0056b3, #1e7e34);
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+            font-weight: 500;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeOut 1s ease-in-out forwards;
+            animation-delay: 0.7s;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; display: none; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="background-image"></div>
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="text-3xl font-semibold text-gray-800 animate-spin">🎓</div>
+    </div>
+    <div id="root" class="w-full"></div>
+    <div class="fixed bottom-4 right-4 bg-gray-900 text-white text-sm rounded-lg px-4 py-2 shadow-lg">
+        <span id="datetime" aria-live="polite"></span>
+    </div>
+
+    <script type="text/babel">
+        function TeacherDashboard() {
+            const [activeSection, setActiveSection] = React.useState('documents');
+            const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+            const [documents, setDocuments] = React.useState([]);
+            const [loading, setLoading] = React.useState({ documents: true });
+            const [error, setError] = React.useState({ documents: '' });
+            const [user, setUser] = React.useState(null);
+            const [teacherData, setTeacherData] = React.useState({
+                name: 'Nom Enseignant',
+                email: 'teacher@stones.academy',
+                subject: ''
+            });
+
+            React.useEffect(() => {
+                const updateDateTime = () => {
+                    const now = new Date();
+                    const options = {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        timeZone: 'Africa/Lagos'
+                    };
+                    document.getElementById('datetime').textContent = now.toLocaleString('fr-FR', options);
+                };
+                updateDateTime();
+                const dateTimeTimer = setInterval(updateDateTime, 1000);
+
+                // Vérification robuste de l'authentification
+                const teacherEmail = localStorage.getItem('teacherEmail');
+                if (!teacherEmail) {
+                    if (window.location.pathname.includes('index.html')) {
+                        return;
+                    }
+                    window.location.href = 'index.html';
+                    return;
+                }
+                setUser({ email: teacherEmail });
+
+                fetchDocuments();
+
+                return () => {
+                    clearInterval(dateTimeTimer);
+                };
+            }, []);
+
+            const fetchDocuments = () => {
+                // Données simulées
+                const simulatedDocuments = [
+                    { id: 1, title: 'Cours de Mathématiques', category: 'Cours', fileName: 'maths.pdf', uploadedBy: 'teacher@stones.academy', uploadDate: '2025-06-10' },
+                    { id: 2, title: 'Plan de Cours', category: 'Planification', fileName: 'plan_cours.pdf', uploadedBy: 'teacher@stones.academy', uploadDate: '2025-06-01' }
+                ];
+                setDocuments(simulatedDocuments);
+                setError(prev => ({ ...prev, documents: '' }));
+                setLoading(prev => ({ ...prev, documents: false }));
+            };
+
+            const handleDocumentDownload = (documentId, documentName) => {
+                alert(`Téléchargement du fichier: ${documentName}`);
+            };
+
+            const handleDocumentUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) {
+                    alert('Veuillez sélectionner un fichier.');
+                    return;
+                }
+                const newDocument = {
+                    id: documents.length + 1,
+                    title: file.name,
+                    category: 'Cours',
+                    fileName: file.name,
+                    uploadedBy: user.email,
+                    uploadDate: new Date().toISOString().split('T')[0]
+                };
+                setDocuments([...documents, newDocument]);
+                alert(`Document téléchargé : ${file.name}`);
+            };
+
+            const handleDataChange = (e) => {
+                const { name, value } = e.target;
+                setTeacherData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleDataSave = () => {
+                if (teacherData.name && teacherData.subject) {
+                    alert('Données enregistrées :\nNom : ' + teacherData.name + '\nMatière : ' + teacherData.subject);
+                } else {
+                    alert('Veuillez remplir tous les champs.');
+                }
+            };
+
+            const handleLogout = () => {
+                if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                    localStorage.removeItem('teacherEmail');
+                    window.location.href = 'index.html';
+                }
+            };
+
+            const handleClick = (e) => {
+                e.target.classList.add('button-click');
+                setTimeout(() => e.target.classList.remove('button-click'), 300);
+            };
+
+            const sections = {
+                documents: (
+                    <div className="fade-in content">
+                        <div className="container-fluid">
+                            <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                                <h1 className="h2 text-gray-800">Documents</h1>
+                            </div>
+                            <div className="card">
+                                <div className="mb-4">
+                                    <label htmlFor="documentUpload" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Télécharger un nouveau document
+                                    </label>
+                                    <input
+                                        id="documentUpload"
+                                        type="file"
+                                        accept=".pdf,.doc,.docx"
+                                        onChange={handleDocumentUpload}
+                                        className="form-control"
+                                    />
+                                </div>
+                                {loading.documents ? (
+                                    <div className="text-center text-gray-500">Chargement... ⏳</div>
+                                ) : error.documents ? (
+                                    <p className="error-message">{error.documents}</p>
+                                ) : (
+                                    <div className="table-container">
+                                        <table className="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Titre</th>
+                                                    <th>Catégorie</th>
+                                                    <th>Nom du Fichier</th>
+                                                    <th>Ajouté par</th>
+                                                    <th>Date d'Ajout</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {documents.length > 0 ? (
+                                                    documents.map(doc => (
+                                                        <tr key={doc.id}>
+                                                            <td>{doc.title}</td>
+                                                            <td>{doc.category}</td>
+                                                            <td>{doc.fileName}</td>
+                                                            <td>{doc.uploadedBy}</td>
+                                                            <td>{doc.uploadDate}</td>
+                                                            <td>
+                                                                <button
+                                                                    className="gradient-button text-white px-4 py-2 rounded-lg hover-effect"
+                                                                    onClick={() => handleDocumentDownload(doc.id, doc.fileName)}
+                                                                    onMouseDown={handleClick}
+                                                                >
+                                                                    Télécharger
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="6" className="text-center text-gray-500">
+                                                            Aucun document disponible
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ),
+                data: (
+                    <div className="fade-in content">
+                        <div className="container-fluid">
+                            <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                                <h1 className="h2 text-gray-800">Mes Données</h1>
+                            </div>
+                            <div className="card">
+                                <div className="p-4">
+                                    <div className="mb-4">
+                                        <label htmlFor="teacherName" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Nom
+                                        </label>
+                                        <input
+                                            id="teacherName"
+                                            type="text"
+                                            name="name"
+                                            value={teacherData.name}
+                                            onChange={handleDataChange}
+                                            className="form-control"
+                                            placeholder="Entrez votre nom"
+                                        />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label htmlFor="teacherEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Email
+                                        </label>
+                                        <input
+                                            id="teacherEmail"
+                                            type="email"
+                                            name="email"
+                                            value={teacherData.email}
+                                            readOnly
+                                            className="form-control bg-gray-100"
+                                        />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label htmlFor="teacherSubject" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Matière enseignée
+                                        </label>
+                                        <select
+                                            id="teacherSubject"
+                                            name="subject"
+                                            value={teacherData.subject}
+                                            onChange={handleDataChange}
+                                            className="form-control"
+                                        >
+                                            <option value="">Sélectionner une matière</option>
+                                            <option value="Mathématiques">Mathématiques</option>
+                                            <option value="Français">Français</option>
+                                            <option value="Histoire">Histoire</option>
+                                            <option value="Sciences">Sciences</option>
+                                        </select>
+                                    </div>
+                                    <button
+                                        className="gradient-button text-white px-4 py-2 rounded-lg hover-effect"
+                                        onClick={handleDataSave}
+                                        onMouseDown={handleClick}
+                                    >
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            };
+
+            return (
+                <div className="container-fluid h-screen flex">
+                    <div className={`sidebar col-md-3 col-lg-2 d-md-block ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed md:static transition-transform duration-300 z-20`} role="navigation">
+                        <div className="sidebar-sticky">
+                            <div className="text-center mb-4">
+                                <img src="logostones.jpg" alt="Stones Academy Logo" className="img-fluid rounded" style={{ width: '80px' }} />
+                                <h4 className="text-white mt-2">Stones Academy</h4>
+                            </div>
+                            <nav className="nav flex-column">
+                                {['documents', 'data'].map(section => (
+                                    <button
+                                        key={section}
+                                        className={`nav-link ${activeSection === section ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setActiveSection(section);
+                                            if (window.innerWidth < 768) setIsSidebarOpen(false);
+                                        }}
+                                        onMouseDown={handleClick}
+                                    >
+                                        <i className={`fas fa-${section === 'documents' ? 'file-alt' : 'user'} mr-2`}></i>
+                                        {section === 'documents' ? 'Documents' : 'Mes Données'}
+                                    </button>
+                                ))}
+                                <button
+                                    className="nav-link text-danger"
+                                    onClick={handleLogout}
+                                    onMouseDown={handleClick}
+                                >
+                                    <i className="fas fa-sign-out-alt mr-2"></i> Déconnexion
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                    <div className="flex-1 flex flex-col col-md-9 ml-sm-auto col-lg-10">
+                        <header className="bg-dark text-white p-3 flex justify-between items-center">
+                            <div className="flex items-center">
+                                <button
+                                    className="md:hidden text-white focus:outline-none"
+                                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    </svg>
+                                </button>
+                                <h1 className="text-xl font-bold ml-3">Tableau de Bord Enseignant</h1>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                                <span className="text-white">{user ? user.email : 'Enseignant'}</span>
+                            </div>
+                        </header>
+                        <main className="flex-1" role="main">{sections[activeSection]}</main>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<TeacherDashboard />, document.getElementById('root'));
+
+        document.getElementById('loadingOverlay').addEventListener('animationend', () => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

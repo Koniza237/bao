@@ -1,0 +1,22 @@
+[
+  {
+    "email": "student@stones.academy",
+    "password": "Student123!"
+  },
+  {
+    "id": "S2",
+    "name": "Atangui Chouchou",
+    "email": "atangana@gmail.com",
+    "filiere": "F1",
+    "password": "12345678",
+    "lastUpdated": "2025-06-13T20:30:17.752Z"
+  },
+  {
+    "id": "S3",
+    "name": "Ngono",
+    "email": "ngono@gmail.com",
+    "filiere": "F2",
+    "password": "12345678",
+    "lastUpdated": "2025-06-14T08:49:45.808Z"
+  }
+]

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gérer les salles pour Stones Academy">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Gestion des Salles - Stones Academy</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="shortcut icon" href="logostones.jpg" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #ffffff;
+            padding: 10px 15px;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+            text-decoration: none;
+        }
+        .sidebar .active {
+            background-color: #007bff;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+        .table th {
+            cursor: pointer;
+        }
+        .table th:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <div class="text-center mb-4">
+                        <img src="logostones.jpg" alt="Stones Academy Logo" class="img-fluid rounded" style="width: 80px;">
+                        <h4 class="text-white mt-2">Stones Academy</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard-admin.html"><i class="fas fa-tachometer-alt mr-2"></i> Tableau de bord</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="classes.html"><i class="fas fa-chalkboard mr-2"></i> Salles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="professeurs.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Professeurs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="departements.html"><i class="fas fa-building mr-2"></i> Départements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="filieres.html"><i class="fas fa-book mr-2"></i> Filières</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="etudiants.html"><i class="fas fa-user-graduate mr-2"></i> Étudiants</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="contraintes.html"><i class="fas fa-calendar-alt mr-2"></i> Contraintes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard-admin.html#"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="exportation.html"><i class="fas fa-file-export mr-2"></i> Exportation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="parametrage-admin.html"><i class="fas fa-cog mr-2"></i> Paramètres</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="connexion.html" onclick="logout()"><i class="fas fa-sign-out-alt mr-2"></i> Déconnexion</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Gestion des Salles</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <span class="mr-3">Vous êtes connecté en tant que : <span id="adminEmail"></span></span>
+                        <span id="timeSpent" class="badge badge-primary"></span>
+                    </div>
+                </div>
+
+                <!-- Salles Section -->
+                <div id="classes" class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" id="searchQuery" class="form-control w-25 d-inline-block" placeholder="Rechercher par nom ou équipements..." aria-label="Rechercher des salles">
+                            <button class="btn btn-primary ml-2" data-toggle="modal" data-target="#classModal"><i class="fas fa-plus"></i> Ajouter Salle</button>
+                            <button class="btn btn-secondary ml-2" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Exporter PDF</button>
+                            <label class="btn btn-secondary ml-2">
+                                Importer XLSX <input type="file" id="importFile" accept=".xlsx" class="d-none" onchange="handleBulkClassImport(event)">
+                            </label>
+                        </div>
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th onclick="sortTable('id')">ID <span id="sortId"></span></th>
+                                    <th onclick="sortTable('name')">Nom <span id="sortName"></span></th>
+                                    <th onclick="sortTable('capacity')">Capacité <span id="sortCapacity"></span></th>
+                                    <th>Équipements</th>
+                                    <th>Dernière Mise à Jour</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="classesTable"></tbody>
+                        </table>
+                        <div class="d-flex justify-content-center mt-4">
+                            <button id="prevPage" class="btn btn-secondary mx-1" disabled>Précédent</button>
+                            <span id="pageInfo" class="px-3 py-2"></span>
+                            <button id="nextPage" class="btn btn-secondary mx-1" disabled>Suivant</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salle Modal -->
+                <div class="modal fade" id="classModal" tabindex="-1" aria-labelledby="classModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="classModalLabel">Ajouter Salle</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="classForm">
+                                    <div class="form-group">
+                                        <label for="className">Nom</label>
+                                        <input type="text" class="form-control" id="className" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="classCapacity">Capacité</label>
+                                        <input type="number" class="form-control" id="classCapacity" min="1" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="classEquipment">Équipements</label>
+                                        <input type="text" class="form-control" id="classEquipment" placeholder="Ex: Projecteur, Tableau" required>
+                                    </div>
+                                    <input type="hidden" id="classEditId">
+                                    <div id="errorMessage" class="text-danger"></div>
+                                    <div id="successMessage" class="text-success"></div>
+                                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let classes = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let sortConfig = { key: 'name', direction: 'asc' };
+        let timeSpent = 0;
+
+        // Vérifier la connexion
+        const adminEmail = localStorage.getItem('adminEmail');
+        if (!adminEmail) {
+            window.location.href = 'connexion.html';
+        } else {
+            document.getElementById('adminEmail').textContent = adminEmail;
+        }
+
+        // Compteur de temps passé
+        setInterval(() => {
+            timeSpent++;
+            const hrs = Math.floor(timeSpent / 3600);
+            const mins = Math.floor((timeSpent % 3600) / 60);
+            const secs = timeSpent % 60;
+            document.getElementById('timeSpent').textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        // Déconnexion
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                localStorage.removeItem('adminEmail');
+                window.location.href = 'connexion.html';
+            }
+        }
+
+        // Charger les salles
+        async function loadClasses() {
+            try {
+                const response = await fetch('/api/resources/classes');
+                if (!response.ok) throw new Error(`Erreur réseau: ${response.status} ${response.statusText}`);
+                classes = await response.json();
+                console.log('Salles chargées:', classes); // Log pour débogage
+                renderTable();
+            } catch (error) {
+                showError('Erreur lors du chargement des salles: ' + error.message);
+                console.error('Erreur loadClasses:', error);
+            }
+        }
+
+        // Rechercher
+        document.getElementById('searchQuery').addEventListener('input', (e) => {
+            currentPage = 1;
+            renderTable(e.target.value);
+        });
+
+        // Trier
+        function sortTable(key) {
+            if (sortConfig.key === key) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 'asc';
+            }
+            document.getElementById('sortId').textContent = key === 'id' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '';
+            document.getElementById('sortName').textContent = key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '';
+            document.getElementById('sortCapacity').textContent = key === 'capacity' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '';
+            renderTable(document.getElementById('searchQuery').value);
+        }
+
+        // Afficher le tableau
+        function renderTable(searchQuery = '') {
+            const filtered = classes.filter(c => 
+                c.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.equipment.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            filtered.sort((a, b) => {
+                let valA = a[sortConfig.key];
+                let valB = b[sortConfig.key];
+                if (sortConfig.key === 'capacity') {
+                    valA = parseInt(valA);
+                    valB = parseInt(valB);
+                }
+                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+            const tbody = document.getElementById('classesTable');
+            tbody.innerHTML = '';
+            if (paginated.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Aucune salle trouvée</td></tr>';
+            } else {
+                paginated.forEach(c => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${c.id}</td>
+                        <td>${c.name}</td>
+                        <td>${c.capacity}</td>
+                        <td>${c.equipment}</td>
+                        <td>${c.lastUpdated ? new Date(c.lastUpdated).toLocaleString('fr-FR') : '-'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm mr-2" onclick="openEditModal('${c.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteClass('${c.id}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} de ${totalPages}`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage >= totalPages;
+        }
+
+        // Pagination
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable(document.getElementById('searchQuery').value);
+            }
+        });
+        document.getElementById('nextPage').addEventListener('click', () => {
+            const totalPages = Math.ceil(classes.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable(document.getElementById('searchQuery').value);
+            }
+        });
+
+        // Ouvrir la modal pour modifier
+        function openEditModal(id) {
+            const cls = classes.find(c => c.id === id);
+            if (cls) {
+                document.getElementById('className').value = cls.name;
+                document.getElementById('classCapacity').value = cls.capacity;
+                document.getElementById('classEquipment').value = cls.equipment;
+                document.getElementById('classEditId').value = cls.id;
+                document.getElementById('classModalLabel').textContent = 'Modifier Salle';
+                $('#classModal').modal('show');
+            } else {
+                showError('Salle non trouvée.');
+            }
+        }
+
+        // Ajouter/Modifier une salle
+        document.getElementById('classForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('className').value.trim();
+            const capacity = parseInt(document.getElementById('classCapacity').value);
+            const equipment = document.getElementById('classEquipment').value.trim();
+            const editId = document.getElementById('classEditId').value;
+            try {
+                if (!name) throw new Error('Le nom de la salle est requis.');
+                if (isNaN(capacity) || capacity <= 0) throw new Error('La capacité doit être un nombre positif.');
+                if (!equipment) throw new Error('Les équipements sont requis.');
+                if (classes.some(c => c.id !== editId && c.name.toLowerCase() === name.toLowerCase())) {
+                    throw new Error('Une salle avec ce nom existe déjà.');
+                }
+                const method = editId ? 'PUT' : 'POST';
+                const endpoint = editId ? `/api/resources/classes/${editId}` : '/api/resources/classes';
+                console.log('Envoi de la requête:', { method, endpoint, name, capacity, equipment }); // Log pour débogage
+                const response = await fetch(endpoint, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        capacity,
+                        equipment,
+                        lastUpdated: new Date().toISOString()
+                    })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Erreur réseau: ${response.status}`);
+                }
+                const result = await response.json();
+                console.log('Réponse serveur:', result); // Log pour débogage
+                $('#classModal').modal('hide');
+                document.getElementById('classForm').reset();
+                document.getElementById('classEditId').value = '';
+                document.getElementById('classModalLabel').textContent = 'Ajouter Salle';
+                showSuccess(`${editId ? 'Modification' : 'Ajout'} effectué avec succès.`);
+                loadClasses();
+            } catch (error) {
+                showError(`Erreur lors de ${editId ? 'la modification' : 'l\'ajout'}: ` + error.message);
+                console.error('Erreur add/modify:', error);
+            }
+        });
+
+        // Supprimer une salle
+        async function deleteClass(id) {
+            if (confirm('Voulez-vous vraiment supprimer cette salle ?')) {
+                try {
+                    const response = await fetch(`/api/resources/classes/${id}`, { method: 'DELETE' });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `Erreur réseau: ${response.status}`);
+                    }
+                    showSuccess('Salle supprimée avec succès.');
+                    loadClasses();
+                } catch (error) {
+                    showError('Erreur lors de la suppression: ' + error.message);
+                    console.error('Erreur delete:', error);
+                }
+            }
+        }
+
+        // Importer XLSX
+        async function handleBulkClassImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet);
+                    for (const cls of json) {
+                        if (!cls.name || !cls.capacity || !cls.equipment) {
+                            throw new Error('Format de fichier invalide: Nom, Capacité et Équipements requis.');
+                        }
+                        console.log('Importation salle:', cls); // Log pour débogage
+                        const response = await fetch('/api/resources/classes', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: cls.name,
+                                capacity: parseInt(cls.capacity),
+                                equipment: cls.equipment,
+                                lastUpdated: new Date().toISOString()
+                            })
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || `Erreur réseau: ${response.status}`);
+                        }
+                    }
+                    showSuccess('Salles importées avec succès.');
+                    loadClasses();
+                };
+                reader.readAsArrayBuffer(file);
+            } catch (error) {
+                showError('Erreur lors de l\'importation: ' + error.message);
+                console.error('Erreur import:', error);
+            }
+        }
+
+        // Exporter PDF
+        async function exportToPDF() {
+            try {
+                const response = await fetch('/api/resources/classes/export-pdf');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Erreur réseau: ${response.status}`);
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'salles.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                showError('Erreur lors de l\'exportation PDF: ' + error.message);
+                console.error('Erreur export PDF:', error);
+            }
+        }
+
+        // Afficher les messages
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => successDiv.style.display = 'none', 5000);
+        }
+
+        // Initialisation
+        $(document).ready(() => {
+            loadClasses();
+        });
+    </script>
+</body>
+</html>

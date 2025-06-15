@@ -1,0 +1,28 @@
+[
+  {
+    "id": "CON1",
+    "teacher": "P1",
+    "group": "Master",
+    "room": "Amphi Tankoua",
+    "day": "Lundi",
+    "time": "10:00",
+    "duration": 2,
+    "volumeHoraire": 45,
+    "type": "Indisponible",
+    "subject": "Informatique",
+    "lastUpdated": "2025-06-14T08:59:58.262Z"
+  },
+  {
+    "id": "CON2",
+    "teacher": "P2",
+    "group": "Bachelor 1",
+    "room": "Amphi Clark",
+    "day": "Mercredi",
+    "time": "08:00",
+    "duration": 2,
+    "volumeHoraire": 44.5,
+    "type": "Indisponible",
+    "subject": "Mathématiques",
+    "lastUpdated": "2025-06-14T09:00:46.645Z"
+  }
+]

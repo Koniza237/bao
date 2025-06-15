@@ -1,0 +1,23 @@
+[
+  {
+    "id": "C1",
+    "name": "Amphi Tankoua",
+    "capacity": 22,
+    "equipment": "Tableau",
+    "lastUpdated": "2025-06-13T13:43:16.841Z"
+  },
+  {
+    "id": "C2",
+    "name": "Amphi Clark",
+    "capacity": 70,
+    "equipment": "Tableau",
+    "lastUpdated": "2025-06-14T08:04:24.994Z"
+  },
+  {
+    "id": "C3",
+    "name": "Amphi 456",
+    "capacity": 90,
+    "equipment": "Tableau, Projecteur, Ecran",
+    "lastUpdated": "2025-06-14T08:04:43.934Z"
+  }
+]

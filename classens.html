@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Classes - Stones Academy</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="shortcut icon" href="logostones.jpg" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #ffffff;
+            padding: 10px 15px;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+            text-decoration: none;
+        }
+        .sidebar .active {
+            background-color: #007bff;
+        }
+        .content {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <div class="text-center mb-4">
+                        <img src="logostones.jpg" alt="Stones Academy Logo" class="img-fluid rounded" style="width: 80px;">
+                        <h4 class="text-white mt-2">Stones Academy</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="dashboard-teacher.html"><i class="fas fa-tachometer-alt mr-2"></i> Tableau de bord</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="classes.html"><i class="fas fa-chalkboard mr-2"></i> Mes Classes</a></li>
+                        <li class="nav-item"><a class="nav-link" href="etudiants.html"><i class="fas fa-user-graduate mr-2"></i> Étudiants</a></li>
+                        <li class="nav-item"><a class="nav-link" href="dashboard-teacher.html#constraints" onclick="showSection('constraints')"><i class="fas fa-calendar-alt mr-2"></i> Contraintes</a></li>
+                        <li class="nav-item"><a class="nav-link" href="dashboard-teacher.html#documents" onclick="showSection('documents')"><i class="fas fa-file-alt mr-2"></i> Documents</a></li>
+                        <li class="nav-item"><a class="nav-link text-danger" href="connexion.html" onclick="logout()"><i class="fas fa-sign-out-alt mr-2"></i> Déconnexion</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Mes Classes</h1>
+                </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr><th>Nom</th><th>Niveau</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="classesTable"></tbody>
+                </table>
+            </main>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Vérifier la connexion
+        const teacherEmail = localStorage.getItem('teacherEmail');
+        if (!teacherEmail) {
+            window.location.href = 'connexion.html';
+        }
+
+        // Déconnexion
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                localStorage.removeItem('teacherEmail');
+                window.location.href = 'connexion.html';
+            }
+        }
+
+        // Fonction pour afficher les sections dans dashboard-teacher.html
+        function showSection(sectionId) {
+            // Cette fonction est appelée dans dashboard-teacher.html après redirection
+            window.parent.postMessage({ sectionId: sectionId }, '*');
+        }
+
+        // Charger les classes (simulation pour tester)
+        function loadClasses() {
+            // Données simulées pour tester en l'absence de serveur
+            const classes = [
+                { id: 1, name: 'Mathématiques', level: 'L1' },
+                { id: 2, name: 'Physique', level: 'L2' }
+            ];
+            const tbody = document.getElementById('classesTable');
+            tbody.innerHTML = '';
+            classes.forEach(c => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${c.name}</td>
+                    <td>${c.level}</td>
+                    <td><button class="btn btn-primary btn-sm" onclick="viewClass(${c.id})">Voir</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Fonction pour voir les détails d'une classe (exemple)
+        function viewClass(classId) {
+            alert('Affichage des détails de la classe ID: ' + classId);
+            // Ajouter une redirection ou une modale pour afficher les détails
+        }
+
+        // Initialisation
+        loadClasses();
+    </script>
+</body>
+</html>

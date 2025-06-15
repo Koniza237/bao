@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gestion des contraintes pour Stones Academy">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="logostones.jpg" type="image/x-icon">
+    <title>Gestion des Contraintes - Stones Academy</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #ffffff;
+            padding: 10px 15px;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+            text-decoration: none;
+        }
+        .sidebar .active {
+            background-color: #007bff;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .table th {
+            cursor: pointer;
+        }
+        .table th:hover {
+            background-color: #e9ecef;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <div class="text-center mb-4">
+                        <img src="logostones.jpg" alt="Stones Academy Logo" class="img-fluid rounded" style="width: 80px;">
+                        <h4 class="text-white mt-2">Stones Academy</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard-admin.html"><i class="fas fa-tachometer-alt mr-2"></i> Tableau de bord</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="classes.html"><i class="fas fa-chalkboard mr-2"></i> Classes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="professeurs.html"><i class="fas fa-chalkboard-teacher mr-2"></i> Professeurs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="departements.html"><i class="fas fa-building mr-2"></i> Départements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="filieres.html"><i class="fas fa-book mr-2"></i> Filières</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="etudiants.html"><i class="fas fa-user-graduate mr-2"></i> Étudiants</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="contraintes.html"><i class="fas fa-calendar-alt mr-2"></i> Contraintes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard-admin.html#""><i class="fas fa-file-alt mr-2"></i> Documents</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="exportation.html"><i class="fas fa-file-export mr-2"></i> Exportation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="messagerie.html"><i class="fas fa-envelope mr-2"></i> Messagerie</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="parametrage-admin.html"><i class="fas fa-cog mr-2"></i> Paramètres</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt mr-2"></i> Déconnexion</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2 fade-in">Gestion des Contraintes</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <span class="mr-3">Vous êtes connecté en tant que : <span id="adminEmail"></span></span>
+                        <span id="timeSpent" class="badge badge-primary"></span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-12 text-right">
+                                <button class="btn btn-primary" onclick="openModal('add')" data-toggle="modal" data-target="#contrainteModal"><i class="fas fa-plus"></i> Ajouter Contrainte</button>
+                            </div>
+                        </div>
+                        <table class="table table-striped table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th onclick="sortTable('id')">ID <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('teacher')">Enseignant <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('group')">Groupe <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('room')">Salle <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('day')">Jour <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('time')">Heure <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('duration')">Durée <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('volumeHoraire')">Volume Horaire <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('type')">Type <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('subject')">Matière <i class="fas fa-sort"></i></th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contrainteTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Contrainte Modal -->
+    <div class="modal fade" id="contrainteModal" tabindex="-1" aria-labelledby="contrainteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contrainteModalLabel">Ajouter Contrainte</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="contrainteForm">
+                        <input type="hidden" id="contrainteId">
+                        <div class="form-group">
+                            <label for="contrainteTeacher">Enseignant</label>
+                            <select class="form-control" id="contrainteTeacher" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contrainteGroup">Groupe</label>
+                            <select class="form-control" id="contrainteGroup" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contrainteRoom">Salle</label>
+                            <select class="form-control" id="contrainteRoom" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contrainteDay">Jour</label>
+                            <select class="form-control" id="contrainteDay" required>
+                                <option value="">Sélectionner un jour</option>
+                                <option value="Lundi">Lundi</option>
+                                <option value="Mardi">Mardi</option>
+                                <option value="Mercredi">Mercredi</option>
+                                <option value="Jeudi">Jeudi</option>
+                                <option value="Vendredi">Vendredi</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contrainteTime">Heure</label>
+                            <input type="time" class="form-control" id="contrainteTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contrainteDuration">Durée (heures)</label>
+                            <input type="number" class="form-control" id="contrainteDuration" min="1" max="8" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="volumeHoraire">Volume Horaire (heures)</label>
+                            <input type="number" class="form-control" id="volumeHoraire" min="0" step="0.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contrainteType">Type</label>
+                            <select class="form-control" id="contrainteType" required>
+                                <option value="">Sélectionner un type</option>
+                                <option value="Indisponible">Indisponible</option>
+                                <option value="Préférence">Préférence</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contrainteSubject">Matière</label>
+                            <select class="form-control" id="contrainteSubject" required></select>
+                        </div>
+                        <div id="errorMessage" class="text-danger d-none"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="saveContrainte()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmer la Suppression</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteMessage"></p>
+                    <div id="deleteErrorMessage" class="text-danger d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let contraintes = [];
+        let teachers = [];
+        let groups = [];
+        let rooms = [];
+        let matieres = [
+            { id: 'M1', name: 'Mathématiques' },
+            { id: 'M2', name: 'Physique' },
+            { id: 'M3', name: 'Informatique' },
+            { id: 'M4', name: 'Chimie' },
+            { id: 'M5', name: 'Anglais' }
+        ]; // Simulation car pas d'endpoint /api/resources/matieres
+        let sortConfig = { key: 'teacher', direction: 'asc' };
+        let isDeleting = {};
+
+        // Vérifier la connexion
+        const adminEmail = localStorage.getItem('adminEmail');
+        if (!adminEmail) {
+            window.location.href = 'connexion.html';
+        } else {
+            document.getElementById('adminEmail').textContent = adminEmail;
+        }
+
+        // Compteur de temps passé
+        let timeSpent = 0;
+        setInterval(() => {
+            timeSpent++;
+            const hrs = Math.floor(timeSpent / 3600);
+            const mins = Math.floor((timeSpent % 3600) / 60);
+            const secs = timeSpent % 60;
+            document.getElementById('timeSpent').textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        $(document).ready(function() {
+            fetchResources();
+            fetchContraintes();
+        });
+
+        function fetchResources() {
+            $.when(
+                $.get('/api/resources/professors'),
+                $.get('/api/resources/filieres'),
+                $.get('/api/resources/classes')
+            ).done(function(teachersData, groupsData, roomsData) {
+                teachers = teachersData[0];
+                groups = groupsData[0];
+                rooms = roomsData[0];
+                populateSelects();
+                renderTable();
+            }).fail(function() {
+                showError('Une erreur est survenue, veuillez réessayer.');
+            });
+        }
+
+        function fetchContraintes() {
+            $.get('/api/resources/constraints', function(data) {
+                contraintes = data;
+                renderTable();
+            }).fail(function() {
+                showError('Une erreur est survenue, veuillez réessayer.');
+            });
+        }
+
+        function populateSelects() {
+            const teacherSelect = $('#contrainteTeacher');
+            teacherSelect.empty().append('<option value="">Sélectionner un enseignant</option>');
+            teachers.forEach(t => {
+                teacherSelect.append(`<option value="${t.id}">${t.name || t.email || t.id}</option>`);
+            });
+
+            const groupSelect = $('#contrainteGroup');
+            groupSelect.empty().append('<option value="">Sélectionner un groupe</option>');
+            groups.forEach(g => {
+                groupSelect.append(`<option value="${g.name}">${g.name}</option>`);
+            });
+
+            const roomSelect = $('#contrainteRoom');
+            roomSelect.empty().append('<option value="">Sélectionner une salle</option>');
+            rooms.forEach(r => {
+                roomSelect.append(`<option value="${r.name}">${r.name}</option>`);
+            });
+
+            const subjectSelect = $('#contrainteSubject');
+            subjectSelect.empty().append('<option value="">Sélectionner une matière</option>');
+            matieres.forEach(m => {
+                subjectSelect.append(`<option value="${m.name}">${m.name}</option>`);
+            });
+        }
+
+        function renderTable() {
+            contraintes.sort((a, b) => {
+                let valA = a[sortConfig.key], valB = b[sortConfig.key];
+                if (sortConfig.key === 'duration' || sortConfig.key === 'volumeHoraire') {
+                    valA = parseFloat(valA || 0);
+                    valB = parseFloat(valB || 0);
+                }
+                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const tbody = $('#contrainteTableBody');
+            tbody.empty();
+
+            if (contraintes.length === 0) {
+                tbody.append('<tr><td colspan="11" class="text-center">Aucune contrainte trouvée.</td></tr>');
+                return;
+            }
+
+            contraintes.forEach(c => {
+                tbody.append(`
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.teacher}</td>
+                        <td>${c.group}</td>
+                        <td>${c.room}</td>
+                        <td>${c.day}</td>
+                        <td>${c.time}</td>
+                        <td>${c.duration} heures</td>
+                        <td>${c.volumeHoraire ? c.volumeHoraire + ' heures' : '-'}</td>
+                        <td><span class="badge ${c.type === 'Indisponible' ? 'badge-danger' : 'badge-success'}">${c.type}</span></td>
+                        <td>${c.subject || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning mr-1" onclick="openModal('edit', '${c.id}')" data-toggle="modal" data-target="#contrainteModal"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="openDeleteModal('${c.id}')" data-toggle="modal" data-target="#deleteModal" ${isDeleting[c.id] ? 'disabled' : ''}>
+                                ${isDeleting[c.id] ? '<span class="spinner-border spinner-border-sm"></span>' : '<i class="fas fa-trash"></i>'}
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function sortTable(key) {
+            if (sortConfig.key === key) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 'asc';
+            }
+            renderTable();
+        }
+
+        function openModal(action, id = '') {
+            $('#contrainteForm')[0].reset();
+            $('#contrainteId').val(id);
+            $('#errorMessage').addClass('d-none');
+            if (action === 'edit') {
+                const contrainte = contraintes.find(c => c.id === id);
+                if (contrainte) {
+                    $('#contrainteModalLabel').text('Modifier Contrainte');
+                    $('#contrainteTeacher').val(contrainte.teacher);
+                    $('#contrainteGroup').val(contrainte.group);
+                    $('#contrainteRoom').val(contrainte.room);
+                    $('#contrainteDay').val(contrainte.day);
+                    $('#contrainteTime').val(contrainte.time);
+                    $('#contrainteDuration').val(contrainte.duration);
+                    $('#volumeHoraire').val(contrainte.volumeHoraire || '');
+                    $('#contrainteType').val(contrainte.type);
+                    $('#contrainteSubject').val(contrainte.subject);
+                } else {
+                    showError('Contrainte non trouvée.');
+                }
+            } else {
+                $('#contrainteModalLabel').text('Ajouter Contrainte');
+            }
+        }
+
+        function saveContrainte() {
+            const id = $('#contrainteId').val();
+            const teacher = $('#contrainteTeacher').val();
+            const group = $('#contrainteGroup').val();
+            const room = $('#contrainteRoom').val();
+            const day = $('#contrainteDay').val();
+            const time = $('#contrainteTime').val();
+            const duration = parseInt($('#contrainteDuration').val());
+            const volumeHoraire = parseFloat($('#volumeHoraire').val());
+            const type = $('#contrainteType').val();
+            const subject = $('#contrainteSubject').val();
+
+            if (!teacher || !group || !room || !day || !time || duration <= 0 || isNaN(volumeHoraire) || volumeHoraire < 0 || !type || !subject) {
+                showError('Veuillez remplir tous les champs correctement.');
+                return;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/resources/constraints/${id}` : '/api/resources/constraints';
+            const data = {
+                id: id || `CON${contraintes.length + 1}`,
+                teacher,
+                group,
+                room,
+                day,
+                time,
+                duration,
+                volumeHoraire,
+                type,
+                subject,
+                lastUpdated: new Date().toISOString()
+            };
+
+            $.ajax({
+                url,
+                method,
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function() {
+                    fetchContraintes();
+                    $('#contrainteModal').modal('hide');
+                    showSuccess(`${id ? 'Modification' : 'Ajout'} effectué avec succès.`);
+                },
+                error: function() {
+                    showError(`Une erreur est survenue lors de ${id ? 'la mise à jour' : 'l\'ajout'}, veuillez réessayer.`);
+                }
+            });
+        }
+
+        function openDeleteModal(id) {
+            const contrainte = contraintes.find(c => c.id === id);
+            if (contrainte) {
+                $('#deleteMessage').text(`Voulez-vous vraiment supprimer la contrainte pour ${contrainte.teacher} (${contrainte.subject}) le ${contrainte.day} à ${contrainte.time} ?`);
+                $('#deleteErrorMessage').addClass('d-none');
+                $('#confirmDeleteBtn').off('click').on('click', () => deleteContrainte(id));
+            } else {
+                showError('Contrainte non trouvée.');
+            }
+        }
+
+        function deleteContrainte(id) {
+            isDeleting[id] = true;
+            renderTable();
+            $.ajax({
+                url: `/api/resources/constraints/${id}`,
+                method: 'DELETE',
+                success: function() {
+                    fetchContraintes();
+                    $('#deleteModal').modal('hide');
+                    showSuccess('Contrainte supprimée avec succès.');
+                    delete isDeleting[id];
+                },
+                error: function() {
+                    showError('Une erreur est survenue lors de la suppression, veuillez réessayer.');
+                    delete isDeleting[id];
+                    renderTable();
+                }
+            });
+        }
+
+        function showError(message) {
+            $('#errorMessage, #deleteErrorMessage').text(message).removeClass('d-none');
+            setTimeout(() => $('#errorMessage, #deleteErrorMessage').addClass('d-none'), 3000);
+        }
+
+        function showSuccess(message) {
+            const alert = $(`<div class="alert alert-success alert-dismissible fade show" role="alert">${message}<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button></div>`);
+            $('.content').prepend(alert);
+            setTimeout(() => alert.alert('close'), 3000);
+        }
+
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                localStorage.removeItem('adminEmail');
+                window.location.href = 'connexion.html';
+            }
+        }
+    </script>
+</body>
+</html>
